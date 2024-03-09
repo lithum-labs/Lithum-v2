@@ -1,0 +1,3 @@
+[submodule "lib/ArtifacterImageGen"]
+	path = lib/ArtifacterImageGen
+	url = https://github.com/lithum-labs/ArtifacterImageGen
