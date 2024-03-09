@@ -1,0 +1,4 @@
+token = "DISCORD_TOKEN"
+
+class admin:
+    error_channel = 0000000000000000000
