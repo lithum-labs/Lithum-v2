@@ -15,6 +15,7 @@ from lib.LithumBot import LithumBot
 cd = 4
 yn = {"True": "Yes", "False": "No"}
 
+
 class utils(commands.GroupCog, name="tools"):
     def __init__(self, bot: LithumBot, **kwargs):
         super().__init__(**kwargs)
@@ -39,12 +40,20 @@ class utils(commands.GroupCog, name="tools"):
         try:
             guild: discord.Guild = self.bot.get_guild(int(guild_id))
         except discord.NotFound:
-            embed = discord.Embed(title="404 Not Found", description=self.bot.translation.getText('Guild "_{}" not found, please check if Bot is added.', lang=udata["bot"]["lang"]).replace("_{}", guild_id))
+            embed = discord.Embed(
+                title="404 Not Found",
+                description=self.bot.translation.getText(
+                    'Guild "_{}" not found, please check if Bot is added.',
+                    lang=udata["bot"]["lang"],
+                ).replace("_{}", guild_id),
+            )
             await interaction.followup.send(embed=embed)
             return
-        title = "{} information".format(guild.name)
+        title = self.bot.translation.getText(
+            "_{}'s information", lang=udata["bot"]["lang"]
+        ).replace("_{}", guild.name)
         embed = discord.Embed(title=title, color=acolor)
-        
+
         users = guild.member_count
         member_count = str(users) + self.bot.translation.getText(
             text=" users", lang=udata["bot"]["lang"]
@@ -52,7 +61,7 @@ class utils(commands.GroupCog, name="tools"):
         if users is None:
             member_count = self.bot.translation.getText(
                 text="Failed to get member count", lang=udata["bot"]["lang"]
-        )
+            )
         discriminator = ""
         owner = self.bot.translation.getText(text="unknown", lang=udata["bot"]["lang"])
         owner_id = ""
@@ -93,14 +102,14 @@ class utils(commands.GroupCog, name="tools"):
             ),
             value=self.bot.translation.getText(text="level ", lang=udata["bot"]["lang"])
             + str(guild.premium_tier),
-            inline=False,
+            inline=True,
         )
         embed.add_field(
             name=self.bot.translation.getText(
                 text="Boost Count", lang=udata["bot"]["lang"]
             ),
             value=str(guild.premium_subscription_count),
-            inline=False,
+            inline=True,
         )
 
         times = guild.created_at.timestamp()
@@ -117,8 +126,6 @@ class utils(commands.GroupCog, name="tools"):
         )
         if guild.icon:
             guild_icon_url = guild.icon.url
-        else:
-            print(guild_icon_url)
 
         embed.set_thumbnail(url=guild_icon_url)
 
@@ -146,8 +153,24 @@ class utils(commands.GroupCog, name="tools"):
             acolor = user.accent_colour
         if not user.discriminator == "0":
             discriminator = "#" + user.discriminator
-        title = "{}'s information".format(user.name + discriminator)
+        """
+        ustat = ustat_dct[user.status.name]
+        user_stat = ustat["emoji"] + " " + self.bot.translation.getText(
+            text=ustat["name"], lang=udata["bot"]["lang"]
+        )
+        embed.add_field(
+            name=self.bot.translation.getText(
+                text="status", lang=udata["bot"]["lang"]
+            ),
+            value=user_stat,
+            inline=True,
+        )
+        """
+        title = self.bot.translation.getText(
+            "_{}'s information", lang=udata["bot"]["lang"]
+        ).replace("_{}", user.name + discriminator)
         embed = discord.Embed(title=title, color=acolor)
+
         embed.add_field(
             name=self.bot.translation.getText(
                 text="is bot?", lang=udata["bot"]["lang"]
@@ -155,7 +178,7 @@ class utils(commands.GroupCog, name="tools"):
             value=self.bot.translation.getText(
                 text=yn[str(user.bot)], lang=udata["bot"]["lang"]
             ),
-            inline=False,
+            inline=True,
         )
         times = user.created_at.timestamp()
         embed.add_field(
@@ -182,7 +205,9 @@ class utils(commands.GroupCog, name="tools"):
         embed.set_thumbnail(url=avatar_url)
         badges.set_thumbnail(url=avatar_url)
         badges.add_field(
-            name=self.bot.translation.getText(text="Badges owned", lang=udata["bot"]["lang"]),
+            name=self.bot.translation.getText(
+                text="Badges owned", lang=udata["bot"]["lang"]
+            ),
             value="",
             inline=False,
         )
