@@ -100,3 +100,12 @@ Changed bot language to _{}.: Botの言語を_{}に変更しました。
 
 'The command cannot be executed because the prominence of the command does not match on the Discord side and the system side.z{n}This usually occurs when the commands have not yet been synchronized, such as immediately after a Bot update.z{n}Please report this at [support server](https://discord.gg/F6SUCkcSyZ).': Discord側とシステム側でコマンドの著名が一致しないため、実行できません。z{n}通常これは、Botのアップデート直後などコマンドの同期が未完了の場合に発生します。z{n}[サポートサーバー](https://discord.gg/F6SUCkcSyZ)で報告してください。
 An unknown error occurred while executing the command "_{}". Please report it at [support server](https://discord.gg/F6SUCkcSyZ) with the following error.: コマンド「_{}」を実行中に不明なエラーが発生しました。[サポートサーバー](https://discord.gg/F6SUCkcSyZ)にて以下のエラーを添えてご報告ください。
+
+_{}'s information: _{}の情報
+success: 成功
+
+status: ステータス
+online: オンライン
+idle: 退席中
+dnd: 取り込み中
+offline: オフライン
