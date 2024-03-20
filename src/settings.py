@@ -18,11 +18,39 @@ class user_setting(commands.GroupCog, name="user-settings"):
 
     @app_commands.command(name="lang", description="Botの言語を変更します。")
     @app_commands.checks.cooldown(2, 60)
-    async def set_lang(self, interaction: discord.Interaction):
-        v = edit_lang(
-            bot=self.bot, user=interaction.user, userData=self.userData, timeout=None
+    @app_commands.describe(lang="bot language")
+    @app_commands.choices(
+        lang=[
+            app_commands.Choice(name="日本語", value="ja_JP"),
+            app_commands.Choice(name="English (American)", value="en_US"),
+        ]
+    )
+    async def set_lang(self, interaction: discord.Interaction, lang: app_commands.Choice[str]):
+        await interaction.response.defer()
+        udata = await self.userData.find_one({"userId": interaction.user.id})
+        if udata is None:
+            udata = {
+                "userId": interaction.user.id,
+                "bot": {"lang": lang.value},
+            }
+            await self.userData.insert_one(udata)
+        else:
+            await self.userData.update_one(
+                {"userId": interaction.user.id},
+                {"$set": {"bot": {"lang": lang.value}}},
+            )
+            udata["bot"]["lang"] = lang.value
+        embed = discord.Embed(
+            title=self.bot.translation.getText(
+                text="success", lang=udata["bot"]["lang"]
+            ),
+            description=self.bot.translation.getText(
+                text="Changed bot language to _{}.",
+                lang=udata["bot"]["lang"],
+            ).replace("_{}", lang.name),
+            color=discord.Colour.green()
         )
-        await interaction.response.send_message(view=v)
+        await interaction.followup.send(embed=embed)
 
 
 async def setup(bot: commands.Bot):
