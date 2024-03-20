@@ -5,6 +5,7 @@ from discord.ext import commands
 
 verification_level = discord.VerificationLevel
 
+
 class func_inter:
     async def disable_dm(interaction: discord.Interaction):
         """
@@ -139,5 +140,32 @@ UserFlags = {
     "active_developer": {
         "emoji": "<:activedeveloper:1194674654426705980>",
         "name": "Active Developer",
+    },
+}
+
+ustat_dct = {
+    "online": {
+        "emoji": "🟢",
+        "name": "online",
+    },
+    "idle": {
+        "emoji": "🌙",
+        "name": "idle",
+    },
+    "dnd": {
+        "emoji": "🔴",
+        "name": "dnd",
+    },
+    "do_not_disturb": {
+        "emoji": "🔴",
+        "name": "dnd",
+    },
+    "offline": {
+        "emoji": "⚫",
+        "name": "offline",
+    },
+    "invisible": {
+        "emoji": "❓",
+        "name": "unknown",
     },
 }
