@@ -43,8 +43,6 @@ class dissoku_up(commands.Cog, name="user-setting"):
             if self.up_servers.get(str(message.guild.id)):
                 return
             self.up_servers[str(message.guild.id)] = True
-            with open("./dissoku/up_emb.json", "w", encoding="utf-8") as f:
-                f.write(orjson.dumps(message.embeds[0].to_dict()).decode("utf-8"))
             if "をアップしたよ" in message.embeds[0].fields[0].name:
                 if settings["up"]["enable"]:
                     bumptime = time() + 3600
