@@ -4,11 +4,35 @@ import time
 
 import asyncio
 import aiohttp
+import orjson
 
 import config
 
 header = {"User-Agent": f"Lithum AIG/{config.version} (Fediverse @sonyakun@misskey.io)"}
 
+async def check_weapons(nameTextMapHash: str):
+    with open("./lib/ArtifacterImageGen/store/loc.json", "r", encoding="utf-8") as f:
+        loc = orjson.loads(f.read())
+    if os.path.isfile(f'./lib/ArtifacterImageGen/weapon/{loc["ja"][nameTextMapHash]}.png'):
+        return True
+    else:
+        return False
+
+async def get_weapons_img(nameTextMapHash: str, NID: str):
+    with open("./lib/ArtifacterImageGen/store/loc.json", "r", encoding="utf-8") as f:
+        loc = orjson.loads(f.read())
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                url=f"https://enka.network/ui/UI_EquipIcon_{NID}.png"
+            ) as rj:
+                if rj.status == 200:
+                    f = open(
+                        f'./lib/ArtifacterImageGen/weapon/{loc["ja"][nameTextMapHash]}.png',
+                        mode="wb",
+                    )
+                    f.write(await rj.read())
+                    print("file saved to: " + f'./lib/ArtifacterImageGen/weapon/{loc["ja"][nameTextMapHash]}.png')
+                    f.close()
 
 async def get_artifact_img(id: str = "15034", name_ja: str = "残響の森で囁かれる夜話"):
     if not os.path.exists(f"./lib/ArtifacterImageGen/Artifact/{name_ja}"):
@@ -163,6 +187,7 @@ def get_chara_img_latest():
     asyncio.run(get_character_img(name="Liuyun", name_ja="閑雲", charaId="10000093"))
 
 
-get_chara_img_latest()
-time.sleep(10)
-get_artifact_img_latest()
+# get_chara_img_latest()
+# time.sleep(10)
+# get_artifact_img_latest()
+asyncio.run(get_character_img(name="Chiori", name_ja="千織", charaId="10000094"))

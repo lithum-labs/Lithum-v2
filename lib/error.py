@@ -5,14 +5,21 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from lib.LithumBot import LithumBot
 from lib.func import PERMISSIONS
 from lib.logger import log
+from lib.db import MongoDB
+
 import config
 
 logger = log().getlogger()
+client = MongoDB().getdb("localhost", 27017)
+db = client.lithum
+userData = db.userData
+
 
 class ExceptionHandler(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: LithumBot) -> None:
         self.bot = bot
 
     @commands.Cog.listener()
@@ -192,47 +199,60 @@ async def setup(bot: commands.Bot) -> None:
 
 
 async def handler(
-    bot: commands.Bot,
+    bot: LithumBot,
     interaction: discord.Interaction,
     error: discord.app_commands.AppCommandError,
 ) -> None:
+    udata = await userData.find_one({"userId": interaction.user.id})
+    if udata is None:
+        udata = {
+            "userId": interaction.user.id,
+            "bot": {"lang": "ja"},
+        }  # ダミーデータ生成
+        await userData.insert_one(udata)
+    """
     if isinstance(error, app_commands.CommandNotFound):
         embed = discord.Embed(
             title="404 Not Found",
             description=f"入力されたコマンド「**{interaction.command.name}**」は存在しませんでした。\n入力ミスなどがないかご確認ください。",
         )
-    elif isinstance(error, app_commands.CommandOnCooldown):
+    """
+    if isinstance(error, app_commands.CommandOnCooldown):
         embed = discord.Embed(
             title="429 Too Many Requests",
-            description=f"コマンドの連続実行数の制限に達しました。\n{str(math.floor(error.retry_after))}秒後に再試行できます。",
+            description=bot.translation.getText(
+                "The limit for the number of consecutive executions of the command has been reached.\nYou can retry after in _{} seconds.",
+                lang=udata["bot"]["lang"],
+            ).replace("_{}", str(math.floor(error.retry_after))),
         )
     elif isinstance(error, app_commands.MissingPermissions):
         embed = discord.Embed(
             title="403 Forbidden",
-            description="実行者の権限が不足しています。\n以下の権限を取得して再試行してください。\n"
+            description=bot.translation.getText("Executor authority is insufficient.\nPlease obtain the following privileges and retry.\n", lang=udata["bot"]["lang"])
             + ", ".join(
-                f"`{PERMISSIONS.get(name)}`" for name in error.missing_permissions
+                f"`{bot.translation.getText(PERMISSIONS.get(name), lang=udata["bot"]["lang"])}`"
+                for name in error.missing_permissions
             ),
         )
     elif isinstance(error, app_commands.BotMissingPermissions):
         embed = discord.Embed(
             title="403 Forbidden",
-            description="botの権限が不足しています。\n以下の権限を付与して再試行してください。\n"
+            description=bot.translation.getText("'The authority of the BOT is insufficient.\nPlease grant the following privileges and retry.\n", lang=udata["bot"]["lang"])
             + ", ".join(
-                f"`{PERMISSIONS.get(name)}`" for name in error.missing_permissions
+                f"`{bot.translation.getText(PERMISSIONS.get(name), lang=udata["bot"]["lang"])}`" for name in error.missing_permissions
             ),
         )
     elif isinstance(error, app_commands.errors.CommandSignatureMismatch):
         embed = discord.Embed(
-            title="588 Commands Signature Mismatch",
-            description="Discord側とシステム側でコマンドの著名が一致しないため、実行できません。\n通常これは、Botのアップデート直後などコマンドの同期が未完了の場合に発生します。\n[サポートサーバー](https://discord.gg/F6SUCkcSyZ)で報告してください。",
+            title="500 Internal Server Error",
+            description=bot.translation.getText('The command cannot be executed because the prominence of the command does not match on the Discord side and the system side.\nThis usually occurs when the commands have not yet been synchronized, such as immediately after a Bot update.\nPlease report this at [support server](https://discord.gg/F6SUCkcSyZ).', lang=udata["bot"]["lang"]),
         )
     else:
         errorm = "".join(traceback.format_exception(error))
         serror = errorm if len(errorm) < 990 else errorm[:990] + "..."
         embed = discord.Embed(
             title="500 Internal Server Error",
-            description=f"コマンド「{interaction.command.name}」を実行中に不明なエラーが発生しました。[サポートサーバー](https://discord.gg/F6SUCkcSyZ)にて以下のエラーを添えてご報告ください。",
+            description=bot.translation.getText('An unknown error occurred while executing the command "_{}". Please report it at [support server](https://discord.gg/F6SUCkcSyZ) with the following error.', lang=udata["bot"]["lang"]).replace("_{}", interaction.command.name),
         )
         embed.add_field(name="", value=f"```{error}```")
         channel = bot.get_channel(config.admin.error_channel)

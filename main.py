@@ -1,23 +1,41 @@
 import asyncio
-import os
 import math
+import os
 import statistics
 
 import discord
-from discord_ext_help.help import extension as helpext
+from dispander import dispand, delete_dispand
 
 import config
 from lib.error import handler
-from lib.logger import log
 from lib.LithumBot import LithumBot
+from lib.localization import Localizer
+from lib.logger import log
 
-bot = LithumBot(command_prefix="/sln ", intents=discord.Intents.all())
-deh = helpext(bot)
+intents = discord.Intents.all()
+intents.members = True
+bot = LithumBot(command_prefix="/sln ", intents=intents)
+# deh = helpext(bot)
 logger = log().getlogger()
+os.environ["DELETE_REACTION_EMOJI"] = "🗑️"
+
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+    await dispand(message)
+
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    await delete_dispand(bot, payload=payload)
+
 
 @bot.event
 async def setup_hook():
     bot.load_translation("./translations")
+    await bot.tree.set_translator(Localizer())
     await bot.load_extension("jishaku")
     for file in os.listdir("./src"):
         if os.path.isfile(os.path.join("./src", file)):
@@ -25,13 +43,26 @@ async def setup_hook():
                 await bot.load_extension(f"src.{file[:-3]}")
                 logger.info("loaded extension: " + f"src.{file[:-3]}")
     command = await bot.tree.sync()
-    await deh.regist_ids(command)
+    # await deh.regist_ids(command)
 
 
+"""
 @bot.tree.command(name="help", description="コマンド一覧を表示します")
 async def help(interaction: discord.Interaction):
     await interaction.response.defer()
-    await deh.generate(interaction)
+    # await deh.generate(interaction)
+"""
+
+
+@bot.tree.command(name="sync", description="sync command tree.")
+async def sync_tree(interaction: discord.Interaction):
+    if interaction.user.id in [1192126533255573635]:
+        await interaction.response.defer()
+        command = await bot.tree.sync()
+        # await deh.regist_ids(command)
+        await interaction.followup.send("synced.")
+    else:
+        raise discord.Forbidden("あなたはこのコマンドを実行する権限がありません。")
 
 
 @bot.tree.error
@@ -43,11 +74,11 @@ async def on_error(
 
 @bot.event
 async def on_ready():
-    deh.config["embed_title"] = "{}のコマンド一覧".format(bot.user.name)
-    deh.config["description_not_found"] = "このコマンドの説明はありません。"
-    deh.config["description_not_found_group"] = (
-        "このコマンドグループの説明はありません。"
-    )
+    # deh.config["embed_title"] = "{}のコマンド一覧".format(bot.user.name)
+    # deh.config["description_not_found"] = "このコマンドの説明はありません。"
+    # deh.config["description_not_found_group"] = (
+    #     "このコマンドグループの説明はありません。"
+    # )
     logger.info("logged in: {}".format(bot.user.name))
     while True:
         servers = str("{:,}".format(int(len(bot.guilds))))
